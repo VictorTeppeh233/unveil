@@ -1,0 +1,68 @@
+{
+  "id": "priv-sess-283a7ecb",
+  "title": "Sanitization Session 1:18:32 PM",
+  "profileId": "default-general",
+  "createdAt": "2026-10-28T13:18:32.915Z",
+  "originalText": "Contact Ama Mensah at ama@example.com about account 004812.",
+  "detectedEntities": [
+    {
+      "id": "e1",
+      "text": "Ama Mensah",
+      "category": "PERSON",
+      "startOffset": 8,
+      "endOffset": 18
+    },
+    {
+      "id": "e2",
+      "text": "ama@example.com",
+      "category": "EMAIL",
+      "startOffset": 22,
+      "endOffset": 37
+    },
+    {
+      "id": "e3",
+      "text": "account 004812",
+      "category": "ACCOUNT_NUMBER",
+      "startOffset": 44,
+      "endOffset": 58
+    }
+  ],
+  "sanitizedText": "Contact [PERSON_A] at [EMAIL_A] about [ACCOUNT_NUMBER_A].",
+  "mappingEntries": [
+    {
+      "entityId": "e1",
+      "sessionId": "priv-sess-283a7ecb",
+      "mappingVersion": 1,
+      "category": "PERSON",
+      "placeholder": "[PERSON_A]",
+      "protectedOriginalValue": "Ama Mensah",
+      "transformation": "replace",
+      "createdAt": "2026-10-28T13:18:32.914Z",
+      "revoked": false
+    },
+    {
+      "entityId": "e2",
+      "sessionId": "priv-sess-283a7ecb",
+      "mappingVersion": 1,
+      "category": "EMAIL",
+      "placeholder": "[EMAIL_A]",
+      "protectedOriginalValue": "ama@example.com",
+      "transformation": "replace",
+      "createdAt": "2026-10-28T13:18:32.914Z",
+      "revoked": false
+    },
+    {
+      "entityId": "e3",
+      "sessionId": "priv-sess-283a7ecb",
+      "mappingVersion": 1,
+      "category": "ACCOUNT_NUMBER",
+      "placeholder": "[ACCOUNT_NUMBER_A]",
+      "protectedOriginalValue": "account 004812",
+      "transformation": "replace",
+      "createdAt": "2026-10-28T13:18:32.914Z",
+      "revoked": false
+    }
+  ],
+  "residualRisk": "clean",
+  "riskDetails": []
+}

@@ -1,0 +1,874 @@
+# Private AI Document Workspace
+## Master Build Prompt and Technical Documentation
+
+**Project type:** Local-first AI document intelligence application  
+**Primary users:** Professionals working with confidential documents  
+**Primary objective:** Search, analyze, compare, and extract knowledge from documents without routinely sending private data to cloud AI services.  
+**Differentiator:** A local Privacy Bridge for sanitizing sensitive information before external AI use and reconstructing responses on the user's machine.
+
+---
+
+# Part I — Master Prompt for the AI Coding System
+
+Copy the prompt below into your AI coding agent. It is designed for a coding system that can inspect files, write code, run commands, and test an application.
+
+## MASTER BUILD PROMPT
+
+You are the lead software architect, senior full-stack engineer, local AI engineer, security engineer, and QA engineer responsible for building a production-quality application called **Private AI Workspace**.
+
+Your job is to design, implement, test, and document the application. Do not merely produce a prototype that looks functional. Build working features with real backend logic, persistent storage, error handling, security controls, and automated tests.
+
+### 1. Product vision
+
+Build a polished, local-first AI document workspace where users can import private documents, ask questions, receive evidence-backed answers, compare files, extract structured information, and identify contradictions.
+
+The application must process documents locally by default. It must also include an optional Privacy Bridge that lets users sanitize sensitive text, manually transfer the sanitized text to an external AI service, paste the response back, and reconstruct the original entities locally.
+
+**Core product principle:** Private data must not leave the machine unless the user explicitly chooses to share a reviewed, sanitized payload.
+
+Do not integrate external AI provider APIs in version 1. The external AI workflow must use manual copy-and-paste only.
+
+### 2. Required technology stack
+
+Use this stack unless the existing repository or a documented technical limitation justifies a change:
+
+**Frontend**
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- shadcn/ui
+- Lucide icons
+- A suitable client-side state management solution
+- Accessible, responsive layouts
+
+**Backend**
+- Python
+- FastAPI
+- Pydantic for request and response validation
+- SQLAlchemy or an equivalent maintainable database layer
+- SQLite for local application metadata and conversation persistence
+
+**Local AI**
+- Ollama for locally hosted language models
+- A local embedding model for semantic document retrieval
+- A configurable local vector index, using ChromaDB or a suitable alternative
+- A retrieval pipeline that does not require an external API
+
+**Document processing**
+- PDF text extraction with page tracking
+- DOCX parsing with paragraph and table support
+- TXT and Markdown parsing
+- A modular ingestion pipeline so more formats can be added later
+
+**Storage**
+- Original documents stored locally
+- Extracted text and document metadata stored locally
+- Vector index stored locally
+- Conversation history stored locally
+- Privacy Bridge mappings stored locally, with appropriate encryption and access controls
+
+Do not claim that the application is encrypted at rest unless encryption has actually been implemented and tested.
+
+Pin compatible dependency versions and document installation requirements.
+
+### 3. Core application modules
+
+Implement the following modules as separate, maintainable components.
+
+#### A. Document library
+
+Users must be able to:
+
+- Import PDF, DOCX, TXT, and Markdown files.
+- View document names, file types, import status, and indexing status.
+- Organize documents into collections or workspaces.
+- Open a document to inspect its extracted text.
+- Re-index a document when necessary.
+- Remove documents and their associated indexes.
+- View processing errors and retry failed imports.
+
+Validate file types and sizes, handle malformed files, and prevent path traversal or unsafe file handling.
+
+Deleting a document should trigger cleanup of its extracted text, vectors, and related metadata according to a documented deletion policy. Explain separately how copies retained in conversation history or exported files are handled.
+
+#### B. Local document chat
+
+Users must be able to start:
+
+1. A quick chat with an individual document.
+2. A chat with a selected collection.
+3. A general conversation that does not automatically have access to every document.
+4. A persistent project conversation that can be reopened later.
+
+Each conversation must have an explicit document scope. The UI must show which documents the assistant can use.
+
+Implement local retrieval-augmented generation (RAG):
+
+1. Extract document text.
+2. Preserve page numbers, section headings, and source locations where available.
+3. Split text into appropriate chunks.
+4. Generate local embeddings.
+5. Retrieve relevant passages for each question.
+6. Generate an answer using the local language model.
+7. Attach source citations to supported claims.
+8. Validate citation references against actual retrieved passages before displaying them.
+
+The system must not invent citations, page numbers, or quotations.
+
+When evidence is insufficient, the assistant must state that clearly rather than fabricate an answer.
+
+#### C. Evidence and citations
+
+Treat evidence handling as a shared subsystem used by chat, comparison, extraction, and contradiction detection.
+
+Each evidence item should contain, where available:
+
+- Document ID
+- Document name
+- Page number
+- Section or heading
+- Source text
+- Chunk or passage identifier
+- Character offsets or equivalent source-location information
+
+Citations must be clickable and open the relevant document location or a source-text preview.
+
+Distinguish between:
+
+- Supported claims
+- Partially supported claims
+- Claims with conflicting evidence
+- Claims for which evidence is insufficient
+
+Do not treat a model's confidence statement as proof. Validate source references programmatically and make evidence available for user inspection.
+
+#### D. Document analysis tools
+
+Implement four principal analysis actions.
+
+**1. Summarization**
+- Summarize an individual document or selected collection.
+- Allow concise and detailed summaries.
+- Include citations for material factual claims where possible.
+- Separate source facts from interpretation.
+
+**2. Document comparison**
+- Compare two or more selected documents.
+- Identify similarities, differences, changed clauses, conflicting values, and missing information.
+- Present results in a structured comparison table.
+- Cite both sides of important comparisons.
+- Do not interpret absence from an excerpt as proof that a document does not contain the information.
+
+**3. Structured extraction**
+- Allow users to request fields or select a predefined extraction template.
+- Produce validated structured output, preferably JSON internally.
+- Support CSV export for tabular results.
+- Attach source evidence to extracted values.
+- Distinguish missing values from values that were not found.
+
+**4. Contradiction detection**
+- Identify statements that appear inconsistent across documents or within one document.
+- Show both statements and their citations.
+- Explain why they may conflict.
+- Distinguish direct contradictions from differences in date, scope, definition, or context.
+- Label uncertain findings as potential contradictions, not proven errors.
+
+Do not present any of these features as a guarantee of legal, financial, or professional correctness.
+
+#### E. Privacy Bridge
+
+Build a dedicated workflow for preparing sensitive text for manual use with an external AI model.
+
+The workflow is:
+
+1. User pastes text or selects supported document content.
+2. The local engine detects potentially sensitive entities.
+3. The user reviews and edits the detections.
+4. A privacy profile determines the transformation applied to each category.
+5. The application generates sanitized text.
+6. A privacy inspection identifies residual risks.
+7. The user inspects the exact outgoing payload.
+8. The user manually copies the approved payload into an external AI service.
+9. The user pastes the external response back into the application.
+10. The local engine reconstructs recognized placeholders.
+11. The user reviews the original external response and reconstructed response side by side.
+
+Never automatically upload text to an external service.
+
+Never send the original-to-placeholder mapping table to the external AI.
+
+Never describe sanitized text as guaranteed anonymous.
+
+#### F. Detection engine
+
+Use a hybrid detection pipeline consisting of deterministic rules and local Ollama-assisted contextual analysis.
+
+Deterministic detectors should handle applicable patterns such as:
+
+- Email addresses
+- Phone numbers
+- URLs and IP addresses
+- Recognizable account and identification number formats
+- Dates and currency values where relevant
+- Configurable organization-specific patterns
+
+Use local model assistance to identify context-dependent entities such as names, organizations, job titles, locations, and indirect identifiers that rules might miss.
+
+The model must assist detection rather than control it exclusively.
+
+Allow users to add, remove, correct, and merge detections manually. Do not automatically merge two similar names without sufficient evidence and user control.
+
+If Ollama is unavailable, deterministic detection and manual review must still work.
+
+#### G. Privacy profiles and transformations
+
+Provide editable profiles such as:
+
+- General purpose
+- Personal information
+- Contracts and legal documents
+- Financial confidentiality
+- Custom profile
+
+Each profile defines which categories are transformed, how they are transformed, and what review is required.
+
+Support three transformation types:
+
+**Replace:** Substitute an entity with a stable placeholder, such as `[PERSON_A]`. Preserve a local mapping for later reconstruction.
+
+**Generalize:** Reduce precision, such as replacing an exact financial amount with a range. This is not necessarily reversible.
+
+**Redact:** Replace sensitive content with `[REDACTED]`. Treat this as non-reversible if the original value is not retained in the mapping.
+
+Allow category-level configuration and version profiles so future changes do not silently alter previously sanitized artifacts.
+
+#### H. Mapping and reconstruction engine
+
+Each sanitized session must have a unique identifier. Each entity must have an internal ID independent of its placeholder label.
+
+Requirements:
+
+- Repeated occurrences of the same confirmed entity use the same placeholder within the selected mapping scope.
+- Distinct entities remain distinct.
+- Session mappings are isolated by default.
+- Optional project-level mapping sharing may be enabled explicitly.
+- Mapping records persist locally.
+- Mapping versions are associated with the sanitized artifact that created them.
+- Mapping storage must be logically separated from ordinary document and conversation data.
+- Provide controls to inspect, revoke, and delete mappings.
+- Do not place original values in placeholder labels, logs, or exported sanitized files.
+
+For reconstruction:
+
+- Select the exact sanitization session and mapping version.
+- Replace only recognized complete tokens.
+- Never perform recursive or substring-based replacement.
+- Preserve unknown, malformed, or invented placeholders.
+- Flag missing expected placeholders.
+- Do not guess an identity based on context.
+- Show substitutions and changes side by side.
+- Require user review before copying or exporting the reconstructed response.
+
+A reconstructed response restores selected information; it does not verify the external model's claims.
+
+#### I. Privacy risk inspection
+
+Before approving an outgoing payload, inspect for:
+
+- Remaining direct identifiers
+- Incomplete or ambiguous transformations
+- Indirect identifiers and distinctive contextual details
+- Sensitive data in metadata or supported hidden document content
+- Potential leakage through filenames or exported artifacts
+- Unrecognized sensitive patterns
+
+Display a clear status:
+
+- **High risk:** A known sensitive identifier remains or an important transformation failed.
+- **Review recommended:** Possible indirect identification, ambiguity, or incomplete detection requires inspection.
+- **No known issues detected:** The configured checks found no flagged issues; this is not a guarantee of anonymity.
+
+Use stricter handling for unresolved direct identifiers than for contextual warnings. Permit informed overrides of contextual warnings and document any stricter blocking behavior.
+
+#### J. Export and reporting
+
+Version 1 must support:
+
+- Copying answers with citations
+- CSV export for structured extraction
+- Markdown export for analysis reports
+- Copying approved sanitized text
+- Copying reviewed reconstructed text
+
+Preserve citations and source identifiers in reports wherever possible.
+
+Do not include original sensitive values in sanitized exports, document metadata, comments, filenames, or hidden fields unless explicitly intended by a separate, clearly labeled local-only export operation.
+
+#### K. Settings and model management
+
+Provide a settings area for:
+
+- Ollama connection status
+- Available local models
+- Language model selection
+- Embedding model selection
+- Data storage location
+- Indexing settings
+- Privacy profile management
+- Mapping management
+- Data deletion controls
+- Model and system diagnostics
+
+Explain model download sizes and approximate hardware requirements where known. Do not assume every computer can run every model.
+
+### 4. User interface requirements
+
+Build a polished desktop-first interface that remains usable on smaller screens.
+
+Use a hybrid design combining a document research workspace and a persistent knowledge library.
+
+Recommended layout:
+
+- **Left sidebar:** Quick Chat, Library, Collections, Privacy Bridge, Settings.
+- **Main workspace:** Current conversation or analysis.
+- **Evidence panel:** Citations, source excerpts, and document navigation.
+- **Context selector:** Clearly displays the documents available to the current conversation.
+
+Include empty states, loading states, progress indicators, error states, confirmation dialogs, and accessible keyboard navigation.
+
+Do not use mock data to make incomplete features appear functional. If a capability is not implemented, label it as unavailable rather than presenting a false success state.
+
+### 5. Security and privacy requirements
+
+Treat document content as untrusted input. Documents may contain instructions designed to manipulate the model.
+
+Implement safeguards against prompt injection in retrieved documents. Instructions found inside documents must be treated as source content, not as higher-priority system instructions.
+
+Additional requirements:
+
+- No external telemetry or analytics by default.
+- No automatic cloud model fallback.
+- No external API calls for inference in version 1.
+- No sensitive text in routine application logs.
+- Validate uploads and API requests.
+- Apply local authentication or OS-level access assumptions transparently.
+- Protect local API endpoints against unauthorized access and cross-origin abuse.
+- Use safe file paths and secure temporary-file handling.
+- Provide explicit deletion and data-retention behavior.
+- Store mapping data with appropriate protection.
+- Avoid claiming protection against malware, compromised operating systems, or every form of re-identification.
+
+### 6. Engineering workflow
+
+Work in milestones. Do not attempt to build every module in one enormous code-generation step.
+
+**Milestone 1 — Repository and architecture**
+- Inspect the repository.
+- Document the architecture and key decisions.
+- Establish frontend and backend skeletons.
+- Add environment configuration and dependency management.
+- Add a health endpoint and basic frontend-backend connection.
+- Provide setup instructions.
+
+**Milestone 2 — Local persistence and document ingestion**
+- Implement SQLite models and local file storage.
+- Implement PDF, DOCX, TXT, and Markdown ingestion.
+- Preserve source locations.
+- Add import progress, error handling, and deletion.
+- Write ingestion tests.
+
+**Milestone 3 — Local RAG and evidence**
+- Integrate Ollama and local embeddings.
+- Implement chunking, indexing, retrieval, and grounded answers.
+- Validate citations.
+- Add document chat and collection scoping.
+- Test retrieval and citation correctness.
+
+**Milestone 4 — Analysis**
+- Implement summaries.
+- Implement document comparison.
+- Implement structured extraction and CSV export.
+- Implement contradiction detection.
+- Add evidence-linked Markdown reports.
+
+**Milestone 5 — Privacy Bridge**
+- Implement rule-based detection.
+- Add Ollama-assisted contextual detection.
+- Implement editable privacy profiles.
+- Implement stable placeholders and persistent local mappings.
+- Implement risk inspection, manual review, and reconstruction.
+- Test isolation between sessions and mapping versions.
+
+**Milestone 6 — Product integration and hardening**
+- Complete the interface.
+- Add diagnostics, deletion controls, and robust errors.
+- Test metadata and export handling.
+- Run security and regression tests.
+- Complete documentation and a clean-install verification.
+
+### 7. Required working practices
+
+Before making changes:
+
+1. Inspect the existing codebase and identify its current state.
+2. Identify the first incomplete milestone.
+3. Explain the proposed implementation briefly.
+4. Reuse existing working components where appropriate.
+
+During implementation:
+
+- Keep modules small and maintainable.
+- Use type hints and explicit schemas.
+- Avoid monolithic components and unnecessary abstractions.
+- Write tests alongside each feature.
+- Run the tests and relevant static checks.
+- Fix failures before declaring a milestone complete.
+- Document decisions and any deviations from the specification.
+
+Never invent test results, claim code was executed when it was not, or label unfinished features as complete.
+
+If a requirement cannot be implemented as specified, explain the limitation and propose the smallest safe alternative.
+
+### 8. Definition of done
+
+A feature is complete only when:
+
+- Its user interface is connected to working backend logic.
+- Its data persists correctly where persistence is required.
+- It handles invalid input and operational failures.
+- Automated tests cover the principal success and failure cases.
+- Its privacy implications are documented.
+- Relevant tests pass in the actual environment.
+- Setup and usage instructions are available.
+
+Begin with Milestone 1. Produce the architecture, repository plan, initial working skeleton, and tests before proceeding to the next milestone.
+
+---
+
+# Part II — Technical Documentation
+
+## 1. System architecture
+
+Use a modular architecture with clear boundaries between the interface, application services, AI pipeline, and local storage.
+
+```text
+┌────────────────────────────────────────────┐
+│            React + TypeScript UI            │
+│                                            │
+│ Library | Chat | Evidence | Privacy Bridge │
+└──────────────────────┬─────────────────────┘
+                       │ Local API
+┌──────────────────────▼─────────────────────┐
+│                 FastAPI                    │
+│                                            │
+│ Documents | Conversations | Analysis       │
+│ Evidence  | Privacy Bridge | Settings      │
+└─────────┬───────────────┬──────────────────┘
+          │               │
+┌─────────▼────────┐  ┌───▼──────────────────┐
+│ Local AI Services│  │ Local Persistence    │
+│                 │  │                      │
+│ Ollama          │  │ SQLite               │
+│ Embeddings      │  │ Original Files       │
+│ Retrieval       │  │ Extracted Text        │
+│ Generation      │  │ Vector Index          │
+│ Privacy NER     │  │ Privacy Mappings      │
+└─────────────────┘  └──────────────────────┘
+```
+
+The diagram is logical, not a claim that the components are already implemented.
+
+Keep the Privacy Bridge as a distinct subsystem. It may reuse document extraction and local model services, but it should not be tightly coupled to the chat interface.
+
+## 2. Suggested repository structure
+
+```text
+private-ai-workspace/
+├── frontend/
+│   ├── src/
+│   │   ├── app/
+│   │   ├── components/
+│   │   ├── features/
+│   │   │   ├── library/
+│   │   │   ├── chat/
+│   │   │   ├── evidence/
+│   │   │   ├── analysis/
+│   │   │   ├── privacy-bridge/
+│   │   │   └── settings/
+│   │   ├── api/
+│   │   ├── hooks/
+│   │   └── types/
+│   ├── package.json
+│   └── README.md
+├── backend/
+│   ├── app/
+│   │   ├── api/
+│   │   ├── core/
+│   │   ├── db/
+│   │   ├── models/
+│   │   ├── schemas/
+│   │   ├── services/
+│   │   │   ├── ingestion/
+│   │   │   ├── retrieval/
+│   │   │   ├── generation/
+│   │   │   ├── evidence/
+│   │   │   ├── analysis/
+│   │   │   └── privacy_bridge/
+│   │   └── main.py
+│   ├── tests/
+│   └── pyproject.toml
+├── docs/
+│   ├── ARCHITECTURE.md
+│   ├── PRIVACY_MODEL.md
+│   ├── THREAT_MODEL.md
+│   ├── DATA_MODEL.md
+│   ├── API.md
+│   ├── TESTING.md
+│   └── ROADMAP.md
+├── scripts/
+├── .env.example
+├── .gitignore
+├── README.md
+└── LICENSE
+```
+
+Keep uploaded documents, databases, vector indexes, local model files, and mapping secrets out of Git. Include a `.gitignore` before handling real user documents.
+
+## 3. Core data model
+
+Use stable IDs and explicit relationships. The following is a starting design, not a complete database migration.
+
+| Entity | Purpose |
+|---|---|
+| `Document` | File metadata, storage location, type, import and indexing status |
+| `DocumentChunk` | Extracted text, chunk order, page/section location, source offsets |
+| `Collection` | Persistent grouping of documents |
+| `CollectionDocument` | Relationship between collections and documents |
+| `Conversation` | Chat title, mode, timestamps, persistence settings |
+| `ConversationDocument` | Explicit document scope for a conversation |
+| `Message` | User or assistant message, model information, timestamps |
+| `EvidenceReference` | Links an answer or analysis claim to source passages |
+| `AnalysisRun` | Task type, inputs, result, status, and evidence |
+| `PrivacyProfile` | Category rules, transformations, and review requirements |
+| `SanitizationSession` | Session ID, source reference, profile version, status |
+| `DetectedEntity` | Entity type, source span, confidence or review state |
+| `MappingEntry` | Internal entity ID, placeholder, protected original value, version |
+| `SanitizedArtifact` | Sanitized text, source mapping, outgoing payload and status |
+
+### Data-model rules
+
+- Use UUIDs or another non-sensitive identifier strategy.
+- Do not use original names, emails, or account numbers as IDs.
+- Preserve source offsets and page references through ingestion.
+- Store the exact mapping version used by each sanitized artifact.
+- Avoid duplicating original sensitive text unnecessarily.
+- Treat deletion as a lifecycle operation across files, database records, vectors, and mappings.
+- Use database migrations instead of relying solely on automatic table creation.
+
+## 4. Local RAG pipeline
+
+### Ingestion
+
+1. Validate the uploaded file.
+2. Store it in the local document directory.
+3. Extract text using a format-specific parser.
+4. Preserve page, heading, table, and source-location metadata where supported.
+5. Split text into overlapping chunks at sensible structural boundaries.
+6. Generate embeddings locally.
+7. Store chunk metadata and vectors.
+8. Mark the document as indexed only after successful completion.
+
+Use a configurable chunk size and overlap. Start with a sensible baseline, then evaluate retrieval quality against a small test corpus rather than assuming one setting is universally best.
+
+### Retrieval
+
+For each question:
+
+1. Determine the conversation's allowed document scope.
+2. Retrieve relevant passages using semantic search, optionally combined with keyword search.
+3. Apply ranking or reranking if the chosen local stack supports it.
+4. Return a bounded set of passages with source metadata.
+5. Pass those passages to the model with instructions to use only the available evidence for document-grounded claims.
+6. Validate the citation IDs in the response.
+7. Display the answer and its evidence.
+
+Do not silently search documents outside the selected scope.
+
+### Citation validation
+
+The model must not be allowed to invent source IDs. Validate every citation against the retrieved evidence records.
+
+Where practical, use a structured response schema containing claims and evidence references. If a response fails validation, retry safely or return an explicit error.
+
+A citation existing does not necessarily mean it supports the claim. Add evaluation tests for actual claim-to-passage support.
+
+## 5. Privacy Bridge design
+
+### Recommended initial policy
+
+These are proposed implementation defaults for unresolved design choices; they can be adjusted during development.
+
+- Mapping scope: session-isolated by default, with explicit project-level sharing.
+- Risk handling: block or require correction for known unresolved direct identifiers; allow informed overrides of contextual warnings.
+- Reconstruction: show the external and reconstructed versions side by side before copying or exporting.
+- Mapping persistence: local and persistent, with explicit inspection and deletion controls.
+
+### Detection and transformation sequence
+
+```text
+Input text
+   ↓
+Rule-based detection
+   ↓
+Local model-assisted contextual detection
+   ↓
+Merge findings and resolve overlaps
+   ↓
+User review and corrections
+   ↓
+Apply selected privacy profile
+   ↓
+Generate sanitized artifact
+   ↓
+Scan for residual risks
+   ↓
+User reviews exact outgoing payload
+   ↓
+Manual transfer to external AI
+   ↓
+Paste response into application
+   ↓
+Strict placeholder reconstruction
+   ↓
+Review differences and substitutions
+   ↓
+Copy or export approved response
+```
+
+### Example
+
+Original text:
+
+> Ama Mensah at Northstar Finance can be contacted at ama@example.com about account 004812.
+
+Sanitized text:
+
+> `[PERSON_A]` at `[ORG_A]` can be contacted at `[EMAIL_A]` about account `[ACCOUNT_A]`.
+
+The original values and placeholder mappings remain local. Only the sanitized text is copied to the external AI.
+
+If the external model returns:
+
+> `[PERSON_A] should review the account before Friday.`
+
+The local application can reconstruct the recognized placeholder while leaving the rest of the response unchanged.
+
+If the external model returns `[PERSON A]`, the application must flag the unrecognized token rather than guessing that it refers to `[PERSON_A]`.
+
+### Mapping record design
+
+A mapping entry should contain fields equivalent to:
+
+- `entity_id`
+- `sanitization_session_id`
+- `mapping_version`
+- `entity_type`
+- `placeholder`
+- `protected_original_value`
+- `source_references`
+- `created_at`
+- `revoked_at`, if applicable
+
+Do not store the original value in ordinary diagnostic logs. Protect mapping values using an appropriate local encryption design, and keep key-management limitations documented. Encryption should be implemented and tested before being advertised as a security feature.
+
+### Privacy limitations
+
+Sanitization does not guarantee anonymity. A document can reveal identity through unusual job titles, locations, dates, events, writing style, or combinations of seemingly harmless facts.
+
+The inspection stage should therefore consider both direct identifiers and contextual clues. Local model-assisted inspection is useful, but it cannot certify that a document is impossible to re-identify.
+
+## 6. Suggested API design
+
+Use versioned, validated endpoints. Names below are proposed conventions.
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `GET` | `/api/v1/health` | Application health |
+| `GET` | `/api/v1/documents` | List documents |
+| `POST` | `/api/v1/documents` | Import a document |
+| `GET` | `/api/v1/documents/{id}` | Retrieve document metadata |
+| `GET` | `/api/v1/documents/{id}/content` | Inspect extracted content |
+| `DELETE` | `/api/v1/documents/{id}` | Delete document and related indexed data |
+| `POST` | `/api/v1/collections` | Create a collection |
+| `GET` | `/api/v1/collections` | List collections |
+| `POST` | `/api/v1/conversations` | Create a conversation |
+| `POST` | `/api/v1/conversations/{id}/messages` | Send a chat message |
+| `POST` | `/api/v1/analysis/compare` | Compare selected documents |
+| `POST` | `/api/v1/analysis/extract` | Extract structured fields |
+| `POST` | `/api/v1/analysis/contradictions` | Find potential contradictions |
+| `GET` | `/api/v1/privacy/profiles` | List privacy profiles |
+| `POST` | `/api/v1/privacy/detect` | Detect potential sensitive entities |
+| `POST` | `/api/v1/privacy/sanitize` | Create a sanitized artifact |
+| `POST` | `/api/v1/privacy/inspect` | Inspect outgoing text for residual risk |
+| `POST` | `/api/v1/privacy/reconstruct` | Reconstruct recognized placeholders |
+| `GET` | `/api/v1/settings/models` | Inspect configured local models |
+
+Validate IDs, input sizes, supported file types, and response schemas. Ensure reconstruction endpoints accept a specific sanitization session and mapping version rather than selecting an ambiguous global mapping.
+
+The API should never expose original mapping values through an endpoint intended for ordinary document search or chat.
+
+## 7. Testing and acceptance criteria
+
+Build a test suite around observable behavior, not just whether endpoints return HTTP 200.
+
+### Document ingestion
+- Valid PDF, DOCX, TXT, and Markdown files import successfully.
+- Unsupported and malformed files produce useful errors.
+- PDF citations use correct page references when available.
+- Document deletion cleans up associated vectors and metadata.
+- Re-importing or re-indexing does not silently create duplicate records.
+
+### RAG and evidence
+- Answers cite passages that actually exist.
+- Citations open the correct source.
+- Questions outside the selected document scope cannot retrieve excluded documents.
+- Insufficient evidence produces an explicit limitation.
+- Prompt-injection text in a document is treated as untrusted content.
+- Comparison results provide evidence from both documents when claiming a difference.
+- Contradiction detection distinguishes direct conflict from context differences.
+
+### Privacy Bridge
+- Known email and phone patterns are detected by rules.
+- Contextual entities can be flagged by local model assistance when configured.
+- Users can correct detections before sanitization.
+- Repeated confirmed entities receive stable placeholders within a session.
+- Separate sessions do not leak mappings into each other.
+- Project-level mapping sharing requires explicit activation.
+- Unknown and malformed tokens are never guessed during reconstruction.
+- Deleted or revoked mappings cannot be used for future reconstruction.
+- Residual direct identifiers trigger the configured high-risk behavior.
+- Sanitized exports do not leak original values through supported metadata fields.
+- The application does not upload content automatically.
+- Reconstruction does not change unrelated substrings or repeatedly replace text.
+
+### Reliability and security
+- Missing Ollama service produces a clear, recoverable error.
+- Failed indexing can be retried.
+- API inputs are validated.
+- Logs do not contain original sensitive values by default.
+- File paths cannot escape the configured storage directory.
+- Application startup instructions work in a clean environment.
+- Tests and lint checks run through documented commands.
+
+Use synthetic test documents. Never use real confidential files as committed test fixtures.
+
+## 8. Documentation deliverables
+
+The coding AI must create and maintain the following files:
+
+**`README.md`**
+- Product overview
+- Features and current limitations
+- Prerequisites
+- Installation
+- How to start the frontend and backend
+- How to configure Ollama and local models
+- Troubleshooting
+- Test commands
+
+**`docs/ARCHITECTURE.md`**
+- System diagram
+- Module boundaries
+- Data flow
+- Model integration
+- Storage design
+- Major technical decisions
+
+**`docs/PRIVACY_MODEL.md`**
+- What stays local
+- What can leave the machine
+- Manual external-AI handoff
+- Mapping persistence and deletion
+- Sanitization limitations
+- Data retention behavior
+
+**`docs/THREAT_MODEL.md`**
+- Sensitive assets
+- Trust boundaries
+- Local attacker and malware limitations
+- Prompt injection
+- Re-identification risks
+- File and metadata leakage
+- Mitigations and known gaps
+
+**`docs/DATA_MODEL.md`**
+- Entities and relationships
+- Database migrations
+- Mapping versions
+- Deletion lifecycle
+
+**`docs/API.md`**
+- Endpoints
+- Request and response schemas
+- Error formats
+- Local security assumptions
+
+**`docs/TESTING.md`**
+- Test strategy
+- Test commands
+- Acceptance criteria
+- Known failures and limitations
+
+**`docs/ROADMAP.md`**
+- Milestones
+- Implemented features
+- In-progress features
+- Deferred features
+- Outstanding risks
+
+Documentation must describe the actual implementation. Do not mark a capability complete merely because it appears in the roadmap or user interface.
+
+## 9. Version 1 scope and deferred work
+
+### Must ship in version 1
+
+- Local document library
+- PDF, DOCX, TXT, and Markdown ingestion
+- Local RAG chat with verifiable citations
+- Quick chats and persistent collections
+- Summaries
+- Document comparison
+- Structured extraction and CSV export
+- Contradiction detection
+- Markdown reports
+- Local Ollama integration
+- Hybrid Privacy Bridge detection
+- Editable privacy profiles
+- Persistent local mappings
+- Manual external-AI handoff
+- Reviewed reconstruction
+- Privacy inspection and deletion controls
+
+### Defer unless the core features are reliable
+
+- Direct external AI APIs
+- Automatic cloud fallback
+- Team collaboration and cloud synchronization
+- Multi-user enterprise administration
+- Browser extensions
+- Automatic email or cloud-drive ingestion
+- Guaranteed anonymity claims
+- Advanced autonomous research agents
+- Pixel-perfect sanitized PDF reconstruction
+- Complex identity resolution across unrelated projects
+
+## 10. Final engineering principle
+
+Prioritize **trustworthy evidence, explicit data boundaries, and predictable privacy behavior** over feature count.
+
+A smaller implementation that correctly grounds answers in documents and handles sensitive information transparently is more valuable than a large interface with unreliable citations or incomplete sanitization.
+
+Start by inspecting the repository, writing the architecture and threat model, and implementing the smallest end-to-end vertical slice: import a local document, ask a question, retrieve relevant passages, display verifiable citations, and confirm that the process works without sending document content to an external service.
+
+Then implement the remaining milestones in order.

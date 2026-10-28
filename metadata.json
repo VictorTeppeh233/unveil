@@ -1,0 +1,7 @@
+{
+  "name": "Private AI Workspace",
+  "description": "Local-first private document intelligence and Privacy Bridge with Ollama Gemma support, verifiable citations, and safe manual external AI round-trips.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
